@@ -54,7 +54,7 @@ int CO2PerformReading()
     command[7] = 0xC5; // CRC_high
     uart_write_bytes(UART_NUM_1, (const char*)command, 8);
 
-    vTaskDelay(1000 / portTICK_RATE_MS);
+    vTaskDelay(50 / portTICK_RATE_MS);
 
     // Read and check response.
     uint8_t data[128];
