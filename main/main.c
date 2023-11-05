@@ -20,8 +20,13 @@
 #include "http.h"
 #include "co2Sensor.h"
 #include "SHTSensor.h"
+#include "sh1106.h"
 
 static const char *TAG = "eth_example";
+
+esp_ip4_addr_t ip_address; //!< location to store current IP address
+
+void takeReadings();
 
 /** Event handler for Ethernet events */
 static void eth_event_handler(void *arg, esp_event_base_t event_base,
@@ -59,6 +64,8 @@ static void got_ip_event_handler(void *arg, esp_event_base_t event_base,
 {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
     const esp_netif_ip_info_t *ip_info = &event->ip_info;
+
+    memcpy(&ip_address,&ip_info->ip,sizeof(esp_ip4_addr_t));
 
     ESP_LOGI(TAG, "Ethernet Got IP Address");
     ESP_LOGI(TAG, "~~~~~~~~~~~");
@@ -110,11 +117,13 @@ void app_main()
     ESP_ERROR_CHECK(esp_eth_start(eth_handle));
 
     CO2Setup();
+    SHTSetup();
 
     httpSetup();
+    sh1106Setup();
 
-    SHTSetup();
     xTaskCreate(takeReadings,"sensors",4096,NULL,10,NULL);
+    xTaskCreate(sh1106Update,"display",4096,NULL,10,NULL);
 }
 
 void takeReadings()
