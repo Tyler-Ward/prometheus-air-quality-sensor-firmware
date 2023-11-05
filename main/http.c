@@ -15,7 +15,6 @@ static esp_err_t metrics_get_handler(httpd_req_t *req)
 {
     //get data
     uint16_t co2 = CO2GetValue();
-    SHTPerformReading();
     uint16_t temperature = SHTGetValueTemprature();
     uint16_t humidity = SHTGetValueHumidity();
 

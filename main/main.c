@@ -114,4 +114,17 @@ void app_main()
     httpSetup();
 
     SHTSetup();
+    xTaskCreate(takeReadings,"sensors",4096,NULL,10,NULL);
+}
+
+void takeReadings()
+{
+    vTaskDelay(500 / portTICK_RATE_MS);
+    while(true)
+    {
+        SHTPerformReading();
+        CO2PerformReading();
+
+        vTaskDelay(5000 / portTICK_RATE_MS);
+    }
 }

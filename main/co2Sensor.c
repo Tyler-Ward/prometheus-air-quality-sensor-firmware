@@ -10,6 +10,8 @@
 
 static const char *TAG = "CO2_sensor";
 
+uint16_t co2data;
+
 void CO2Setup()
 {
     uart_config_t uart_config = {
@@ -34,7 +36,7 @@ void CO2Setup()
                                             uart_buffer_size, 10, &uart_queue, 0));
 }
 
-uint16_t CO2GetValue()
+int CO2PerformReading()
 {
     // Send a modbus packet to read register 3 containing the CO2 reading for the CO2 Sensor
     char command[7];
@@ -48,7 +50,7 @@ uint16_t CO2GetValue()
     command[7] = 0xC5; // CRC_high
     uart_write_bytes(UART_NUM_1, (const char*)command, 8);
 
-    sleep(1);
+    vTaskDelay(1000 / portTICK_RATE_MS);
 
     // Read and check response.
     uint8_t data[128];
@@ -60,8 +62,13 @@ uint16_t CO2GetValue()
 
     ESP_LOGI(TAG, "recieved : %d", length);
 
-    uint16_t co2data = (256*data[3])+data[4];
+    co2data = (256*data[3])+data[4];
     ESP_LOGI(TAG, "co2 : %d", co2data);
 
+    return(true);
+}
+
+uint16_t CO2GetValue()
+{
     return(co2data);
 }

@@ -93,8 +93,8 @@ int SHTPerformReading()
     temperature = (data[0]<<8) + data[1];
     humidity = (data[3]<<8) + data[4];
 
-    ESP_LOGI(TAG, "temp : %.1f", SHTTemperatureConvertCelcius(temperature));
-    ESP_LOGI(TAG, "humid : %.1f", SHTHumidityConvert(humidity));
+    //ESP_LOGI(TAG, "temp : %.1f", SHTTemperatureConvertCelcius(temperature));
+    //ESP_LOGI(TAG, "humid : %.1f", SHTHumidityConvert(humidity));
 
     return true;
 }
