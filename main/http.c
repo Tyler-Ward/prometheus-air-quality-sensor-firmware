@@ -22,12 +22,15 @@ static esp_err_t metrics_get_handler(httpd_req_t *req)
 
     char buffer[128];
 
-    httpd_resp_sendstr_chunk(req, "# HELP sensor_co2_level_ppm CO2 value, in ppm\n");
-    httpd_resp_sendstr_chunk(req, "# TYPE sensor_co2_level_ppm gauge\n");
+    //dont include CO2 data if sensor doesent have good data
+    if(CO2DataGood())
+    {
+        httpd_resp_sendstr_chunk(req, "# HELP sensor_co2_level_ppm CO2 value, in ppm\n");
+        httpd_resp_sendstr_chunk(req, "# TYPE sensor_co2_level_ppm gauge\n");
 
-    sprintf(buffer, "sensor_co2_level_ppm{id=\"%s\"} %d\n","1", co2);
-    httpd_resp_sendstr_chunk(req,buffer);
-
+        sprintf(buffer, "sensor_co2_level_ppm{id=\"%s\"} %d\n","1", co2);
+        httpd_resp_sendstr_chunk(req,buffer);
+    }
 
     httpd_resp_sendstr_chunk(req, "# HELP sensor_temperature_celsius temperature in Celsius\n");
     httpd_resp_sendstr_chunk(req, "# TYPE sensor_temperature_celsius gauge\n");

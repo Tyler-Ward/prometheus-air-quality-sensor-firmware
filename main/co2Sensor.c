@@ -10,10 +10,14 @@
 
 static const char *TAG = "CO2_sensor";
 
-uint16_t co2data;
+uint8_t co2DataGood; //!< used to mark if CO2 has good data
+uint16_t co2Data;   //!< last CO2 reading
 
 void CO2Setup()
 {
+    co2DataGood = 0;
+    co2Data = 0;
+
     uart_config_t uart_config = {
         .baud_rate = 9600,
         .data_bits = UART_DATA_8_BITS,
@@ -58,17 +62,63 @@ int CO2PerformReading()
     ESP_ERROR_CHECK(uart_get_buffered_data_len(UART_NUM_1, (size_t*)&length));
     length = uart_read_bytes(UART_NUM_1, data, length, 100);
 
-    //TODO check that message is not an error code and checksum matches
+    if(length != 7)
+    {
+        ESP_LOGI(TAG, "recieved invalid length : %d", length);
+        co2DataGood = 0;
+        return(false);
+    }
 
-    ESP_LOGI(TAG, "recieved : %d", length);
+    // Calculate modbus checksum
+    uint16_t crc = 0xFFFF;
+    for(int pos = 0; pos < 5; pos++)
+    {
+        crc ^= data[pos];
 
-    co2data = (256*data[3])+data[4];
-    ESP_LOGI(TAG, "co2 : %d", co2data);
+        for(int bit = 8; bit > 0; bit--)
+        {
+            if (crc & 0x0001)
+            {
+                crc = crc >> 1;
+                crc ^= 0xA001;
+            }
+            else
+            {
+                crc = crc >> 1;
+            }
+        }
+    }
+    if(
+        (data[5] != (crc & 0xff)) | 
+        (data[6] != (crc>>8 & 0xff))
+    )
+    {
+        ESP_LOGI(TAG, "invalid checksum");
+        co2DataGood = 0;
+        return(false);
+    }
+
+    co2Data = (256*data[3])+data[4];
+
+    //after poweron data is 0 till first reading
+    if(co2Data == 0x0000)
+    {
+        ESP_LOGI(TAG, "C02 Empty Data");
+        co2DataGood = 0;
+        return(false);
+    }
+
+    co2DataGood = 1;
 
     return(true);
 }
 
 uint16_t CO2GetValue()
 {
-    return(co2data);
+    return(co2Data);
+}
+
+uint8_t CO2DataGood()
+{
+    return(co2DataGood);
 }

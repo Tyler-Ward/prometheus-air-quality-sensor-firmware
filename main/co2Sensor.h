@@ -15,3 +15,8 @@ int CO2PerformReading();
  * @brief Gets the CO2 value from the last reading
  */
 uint16_t CO2GetValue();
+
+/**
+ * @brief Returns 1 if the last CO2 reading was good
+ */
+uint8_t CO2DataGood();
