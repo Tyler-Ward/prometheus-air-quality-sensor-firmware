@@ -36,17 +36,27 @@ void CO2Setup()
 
 uint16_t CO2GetValue()
 {
-    // Write data to UART.
-    char* test_str = "\xFE\x44\x00\x08\x02\x9F\x25";
-    uart_write_bytes(UART_NUM_1, (const char*)test_str, 7);
+    // Send a modbus packet to read register 3 containing the CO2 reading for the CO2 Sensor
+    char command[7];
+    command[0] = 0xFE;  //Address (all sensors)
+    command[1] = 0x04;  //Functon code (Read Input registers)
+    command[2] = 0x00;  //Addr High (0x0003)
+    command[3] = 0x03;  //Addr Low (0x0003)
+    command[4] = 0x00;  //Qty High (0x0001)
+    command[5] = 0x01;  //Qty High (0x0001)
+    command[6] = 0xD5; // CRC_low
+    command[7] = 0xC5; // CRC_high
+    uart_write_bytes(UART_NUM_1, (const char*)command, 8);
 
     sleep(1);
 
-    // Read data from UART.
+    // Read and check response.
     uint8_t data[128];
     int length = 0;
     ESP_ERROR_CHECK(uart_get_buffered_data_len(UART_NUM_1, (size_t*)&length));
     length = uart_read_bytes(UART_NUM_1, data, length, 100);
+
+    //TODO check that message is not an error code and checksum matches
 
     ESP_LOGI(TAG, "recieved : %d", length);
 
